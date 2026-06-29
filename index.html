@@ -2,68 +2,181 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=3.0, user-scalable=yes">
 <title>行业轮动报告</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
-body { font-family: 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif; background: #fff; color: #1a1a1a; padding: 16px; }
+:root {
+  --bg: #fff; --text: #1a1a1a; --text-secondary: #666;
+  --card-bg: #fff; --card-border: #e8e8e8;
+  --accent-red: #c0392b; --accent-green: #27ae60;
+  --table-header: #f5f5f5; --table-stripe: #fafafa;
+}
+body { font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif; background: var(--bg); color: var(--text); padding: 12px; -webkit-text-size-adjust: 100%; -webkit-tap-highlight-color: transparent; }
 .container { max-width: 1000px; margin: 0 auto; }
-.header { text-align: center; padding: 36px 20px 28px; margin-bottom: 24px; border-bottom: 2px solid #e0e0e0; }
-.header::before { content: ''; display: block; width: 40px; height: 2px; background: #ddd; margin: 0 auto 18px; }
-.header h1 { font-size: 28px; font-weight: 700; margin-bottom: 8px; color: #1a1a1a; letter-spacing: 3px; }
-.header .subtitle { color: #666; font-size: 14px; letter-spacing: 2px; }
-.header .meta { display: flex; justify-content: center; gap: 28px; margin-top: 18px; font-size: 12px; color: #999; flex-wrap: wrap; }
-.header .meta span { position: relative; }
-.header .meta span::after { content: '·'; position: absolute; right: -16px; top: 0; color: #ccc; }
+
+/* ── Header ── */
+.header { text-align: center; padding: 28px 16px 20px; margin-bottom: 20px; border-bottom: 2px solid #e0e0e0; }
+.header::before { content: ''; display: block; width: 32px; height: 2px; background: #ddd; margin: 0 auto 14px; }
+.header h1 { font-size: 24px; font-weight: 700; margin-bottom: 6px; color: var(--text); letter-spacing: 2px; }
+.header .subtitle { color: var(--text-secondary); font-size: 13px; letter-spacing: 1px; }
+.header .meta { display: flex; justify-content: center; gap: 16px; margin-top: 14px; font-size: 11px; color: #999; flex-wrap: wrap; }
+.header .meta span { position: relative; white-space: nowrap; }
+.header .meta span::after { content: '·'; position: absolute; right: -10px; top: 0; color: #ccc; }
 .header .meta span:last-child::after { display: none; }
-.card { background: #fff; border: 1px solid #e8e8e8; border-radius: 6px; padding: 24px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
-.card h2 { font-size: 16px; font-weight: 700; margin-bottom: 18px; color: #1a1a1a; padding-bottom: 10px; border-bottom: 1px solid #e8e8e8; letter-spacing: 1px; }
-.card h2::after { content: ''; position: absolute; bottom: -1px; left: 0; width: 36px; height: 2px; background: #666; }
-.metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
-.metric-card { background: #fafafa; border-radius: 4px; padding: 14px 10px; text-align: center; border: 1px solid #eee; }
-.metric-card .label { font-size: 10px; color: #888; letter-spacing: 1px; margin-bottom: 4px; text-transform: uppercase; }
-.metric-card .value { font-size: 22px; font-weight: 700; font-family: 'SF Mono', 'Menlo', 'Consolas', monospace; }
-.metric-card .value.positive { color: #c0392b; }
-.metric-card .value.negative { color: #27ae60; }
-.metric-card .value.neutral { color: #1a1a1a; }
+
+/* ── Card ── */
+.card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 8px; padding: 18px; margin-bottom: 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+.card h2 { font-size: 15px; font-weight: 700; margin-bottom: 14px; color: var(--text); padding-bottom: 8px; border-bottom: 1px solid #e8e8e8; letter-spacing: 0.5px; position: relative; }
+.card h2::after { content: ''; position: absolute; bottom: -1px; left: 0; width: 30px; height: 2px; background: #666; }
+
+/* ── Metrics Grid ── */
+.metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; }
+.metric-card { background: #fafafa; border-radius: 6px; padding: 12px 8px; text-align: center; border: 1px solid #eee; transition: background 0.15s; }
+.metric-card:active { background: #f0f0f0; }
+.metric-card .label { font-size: 10px; color: #888; letter-spacing: 0.5px; margin-bottom: 3px; text-transform: uppercase; }
+.metric-card .value { font-size: 20px; font-weight: 700; font-family: 'SF Mono', 'Menlo', 'Consolas', monospace; }
+.metric-card .value.positive { color: var(--accent-red); }
+.metric-card .value.negative { color: var(--accent-green); }
+.metric-card .value.neutral { color: var(--text); }
+
+/* ── Chart ── */
 .chart-container { position: relative; height: 380px; margin: 10px 0; }
 .chart-container canvas { width: 100% !important; }
-table { width: 100%; border-collapse: collapse; font-size: 12px; }
-table th { background: #f5f5f5; padding: 10px 12px; text-align: left; font-weight: 600; color: #333; border-bottom: 2px solid #ddd; white-space: nowrap; font-size: 11px; }
+
+/* ── Tables ── */
+.table-wrapper { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 600px; }
+table th { background: var(--table-header); padding: 10px 12px; text-align: left; font-weight: 600; color: #333; border-bottom: 2px solid #ddd; white-space: nowrap; font-size: 11px; position: sticky; top: 0; z-index: 1; }
 table td { padding: 9px 12px; border-bottom: 1px solid #eee; }
-table tbody tr:hover { background: #fafafa; }
-table tbody tr:nth-child(even) { background: #fafafa; }
+table tbody tr:hover { background: #f0f4ff; }
+table tbody tr:nth-child(even) { background: var(--table-stripe); }
 table .num { text-align: right; font-variant-numeric: tabular-nums; font-family: 'SF Mono', 'Menlo', 'Consolas', monospace; }
-table .positive { color: #c0392b; }
-table .negative { color: #27ae60; }
-.risk-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 8px; }
-.risk-item { background: #fafafa; border-radius: 4px; padding: 14px 16px; border-left: 4px solid #ddd; }
-.risk-item .risk-label { font-size: 12px; font-weight: 600; color: #1a1a1a; margin-bottom: 6px; }
-.risk-item .risk-value { font-size: 18px; font-weight: 700; margin-bottom: 4px; font-family: 'SF Mono', 'Menlo', 'Consolas', monospace; }
-.risk-item .risk-meta { font-size: 10px; color: #999; }
-.risk-item.red { border-left-color: #c0392b; background: #fef5f5; }
-.risk-item.red .risk-value { color: #c0392b; }
+table .positive { color: var(--accent-red); }
+table .negative { color: var(--accent-green); }
+
+/* ── Risk Grid ── */
+.risk-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 8px; }
+.risk-item { background: #fafafa; border-radius: 6px; padding: 12px 14px; border-left: 4px solid #ddd; }
+.risk-item .risk-label { font-size: 12px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+.risk-item .risk-value { font-size: 17px; font-weight: 700; margin-bottom: 3px; font-family: 'SF Mono', 'Menlo', 'Consolas', monospace; word-break: break-all; }
+.risk-item .risk-meta { font-size: 10px; color: #999; word-break: break-all; }
+.risk-item.red { border-left-color: var(--accent-red); background: #fef5f5; }
+.risk-item.red .risk-value { color: var(--accent-red); }
 .risk-item.yellow { border-left-color: #d4a017; background: #fffdf5; }
 .risk-item.yellow .risk-value { color: #8b6914; }
-.risk-item.green { border-left-color: #27ae60; background: #f5fdf7; }
+.risk-item.green { border-left-color: var(--accent-green); background: #f5fdf7; }
 .risk-item.green .risk-value { color: #1e7a3a; }
-.badge { display: inline-block; padding: 3px 10px; border-radius: 3px; font-size: 11px; font-weight: 600; letter-spacing: 1px; }
+
+/* ── Badge ── */
+.badge { display: inline-block; padding: 3px 10px; border-radius: 3px; font-size: 11px; font-weight: 600; letter-spacing: 0.5px; }
 .badge-purple { background: #f5f0fa; color: #6b4e7a; border: 1px solid #e0d5eb; }
-.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-@media (max-width: 768px) { .two-col { grid-template-columns: 1fr; } }
-.scroll-table { max-height: 480px; overflow-y: auto; }
-.scroll-table thead { position: sticky; top: 0; z-index: 1; }
+
+/* ── Two-col Layout ── */
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+/* ── Scroll Table ── */
+.scroll-table { max-height: 480px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.scroll-table thead { position: sticky; top: 0; z-index: 2; }
 .scroll-table thead th { background: #f5f5f5; }
-.footer { text-align: center; color: #999; font-size: 11px; padding: 20px; margin-top: 24px; border-top: 1px solid #e8e8e8; }
-.footer::before { content: ''; display: block; width: 40px; height: 1px; background: #ddd; margin: 0 auto 10px; }
-.legend { display: flex; gap: 16px; margin-bottom: 14px; font-size: 11px; justify-content: center; }
-.legend-item { display: flex; align-items: center; gap: 5px; }
-.legend-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
-.legend-dot.red { background: #c0392b; }
+
+/* ── Footer ── */
+.footer { text-align: center; color: #999; font-size: 11px; padding: 16px; margin-top: 20px; border-top: 1px solid #e8e8e8; }
+.footer::before { content: ''; display: block; width: 32px; height: 1px; background: #ddd; margin: 0 auto 8px; }
+
+/* ── Legend ── */
+.legend { display: flex; gap: 12px; margin-bottom: 12px; font-size: 11px; justify-content: center; flex-wrap: wrap; }
+.legend-item { display: flex; align-items: center; gap: 4px; white-space: nowrap; }
+.legend-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+.legend-dot.red { background: var(--accent-red); }
 .legend-dot.yellow { background: #d4a017; }
-.legend-dot.green { background: #27ae60; }
-.signal-highlight { background: #fafafa; border: 1px solid #eee; border-radius: 4px; padding: 12px 16px; font-size: 13px; color: #444; }
+.legend-dot.green { background: var(--accent-green); }
+
+/* ── Signal Highlight ── */
+.signal-highlight { background: #fafafa; border: 1px solid #eee; border-radius: 6px; padding: 10px 14px; font-size: 13px; color: #444; line-height: 1.6; }
+
+/* ── Signal Detail Grid ── */
+.signal-detail-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 14px; }
+
+/* ══════════════════════════════════════════════
+   📱 手机浏览适配 (Mobile-First)
+   ══════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+  body { padding: 8px; font-size: 14px; }
+
+  .header { padding: 20px 12px 14px; }
+  .header::before { width: 24px; height: 2px; margin-bottom: 10px; }
+  .header h1 { font-size: 20px; letter-spacing: 1px; }
+  .header .subtitle { font-size: 12px; }
+  .header .meta { gap: 10px; font-size: 10px; }
+  .header .meta span::after { right: -7px; }
+
+  .card { padding: 14px; border-radius: 6px; margin-bottom: 10px; }
+  .card h2 { font-size: 14px; margin-bottom: 10px; padding-bottom: 6px; }
+
+  .two-col { grid-template-columns: 1fr; gap: 10px; }
+
+  .metrics-grid { grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .metric-card { padding: 10px 6px; }
+  .metric-card .label { font-size: 9px; }
+  .metric-card .value { font-size: 17px; }
+
+  .chart-container { height: 250px; }
+
+  /* 表格横向滚动 */
+  table { font-size: 11px; min-width: 520px; }
+  table th { padding: 8px 8px; font-size: 10px; }
+  table td { padding: 7px 8px; }
+
+  .risk-grid { grid-template-columns: 1fr; gap: 6px; }
+  .risk-item { padding: 10px 12px; }
+  .risk-item .risk-value { font-size: 15px; }
+
+  .scroll-table { max-height: 360px; }
+
+  .footer { padding: 12px; font-size: 10px; }
+  .footer::before { width: 24px; }
+
+  .legend { gap: 8px; font-size: 10px; }
+
+  .signal-detail-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .signal-highlight { font-size: 12px; padding: 8px 12px; }
+}
+
+@media (max-width: 480px) {
+  body { padding: 6px; }
+
+  .header { padding: 16px 8px 10px; margin-bottom: 12px; }
+  .header::before { width: 20px; margin-bottom: 8px; }
+  .header h1 { font-size: 18px; }
+  .header .subtitle { font-size: 11px; }
+  .header .meta { gap: 6px; font-size: 9px; }
+
+  .card { padding: 10px; border-radius: 4px; margin-bottom: 8px; }
+  .card h2 { font-size: 13px; }
+
+  .metrics-grid { grid-template-columns: repeat(2, 1fr); gap: 4px; }
+  .metric-card { padding: 8px 4px; }
+  .metric-card .label { font-size: 8px; }
+  .metric-card .value { font-size: 15px; }
+
+  .chart-container { height: 200px; }
+
+  table { font-size: 10px; min-width: 460px; }
+  table th { padding: 6px 6px; font-size: 9px; }
+  table td { padding: 5px 6px; }
+
+  .risk-item { padding: 8px 10px; }
+  .risk-item .risk-value { font-size: 14px; }
+  .risk-item .risk-meta { font-size: 9px; }
+
+  .scroll-table { max-height: 300px; }
+
+  .signal-detail-grid { grid-template-columns: 1fr 1fr; gap: 6px; }
+}
+
 @media print {
   @page { size: A4 landscape; margin: 10mm; }
   body { background: #fff; padding: 0; font-size: 10px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
@@ -96,7 +209,7 @@ table .negative { color: #27ae60; }
   <h1>行业轮动报告</h1>
   <div class="subtitle">风险剔除 + 动量因子 + 个股拟合</div>
   <div class="meta">
-    <span>生成时间: 2026-06-28 22:05</span>
+    <span>生成时间: 2026-06-29 15:35</span>
     <span>回测区间: 2016.01 ~ 2026.06</span>
     <span>调仓频率: 月度</span>
   </div>
@@ -134,6 +247,7 @@ table .negative { color: #27ae60; }
 
 <div class="card">
   <h2>历史收益</h2>
+  <div class="table-wrapper">
   <table>
     <thead>
       <tr><th>周期</th><th class="num">行业收益率</th><th class="num">个股收益率</th><th class="num">行业最大回撤</th><th class="num">个股最大回撤</th></tr>
@@ -154,11 +268,12 @@ table .negative { color: #27ae60; }
       <tr><td><strong>2016</strong></td><td class="num positive">+6.6%</td><td class="num positive">+30.6%</td><td class="num negative">-20.0%</td><td class="num negative">-24.0%</td></tr>
     </tbody>
   </table>
+  </div>
 </div>
 
 <div class="card">
   <h2>最新信号详情</h2>
-  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:16px;">
+  <div class="signal-detail-grid">
     <div class="metric-card"><div class="label">推荐行业</div><div class="value neutral" style="font-size:18px;">通信</div></div>
     <div class="metric-card"><div class="label">行业代码</div><div class="value neutral" style="font-size:15px;">801770.SI</div></div>
     <div class="metric-card"><div class="label">因子得分</div><div class="value neutral">2.274</div></div>
@@ -189,6 +304,7 @@ table .negative { color: #27ae60; }
 <div class="card">
   <h2>历史信号（最近24个月）</h2>
   <div class="scroll-table">
+  <div class="table-wrapper">
   <table>
     <thead>
       <tr><th>信号月</th><th>持仓月</th><th>行业</th><th class="num">指数收益率</th><th class="num">个股收益率</th></tr>
@@ -221,12 +337,13 @@ table .negative { color: #27ae60; }
     </tbody>
   </table>
   </div>
+  </div>
   <div style="margin-top:14px;font-size:12px;color:#a09080;line-height:1.8;">※ 历史持仓收益计算口径：不包含当月首个交易日数据，包含次月首个交易日数据。与 MTD / QTD / YTD 统计逻辑不同，因此数据不可直接对比。</div>
 </div>
 
 <div class="footer">
   <p>行业轮动报告 · 风险剔除 + 动量因子 + 个股拟合 · 基于申万一级行业指数 · 数据来源: WindSQL</p>
-  <p>生成时间: 2026-06-28 22:05 · 市场有风险，投资需谨慎。仅供学习交流，不可视为投资建议。</p>
+  <p>生成时间: 2026-06-29 15:35 · 市场有风险，投资需谨慎。仅供学习交流，不可视为投资建议。</p>
 </div>
 
 </div>
